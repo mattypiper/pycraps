@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import random, sys
+import random, sys, argparse, numpy
 
 r = random.Random()
 
@@ -36,16 +36,19 @@ def dontpass(rolls, stake=10, multiplier=3):
 
     # front line
     dollas = stake * (len(wins) - len(losses))
+    risk = stake * len(rolls)
 
     # odds line
     for w in [x for x in wins if x in numbers]:
         odds_win = odds(w, stake, multiplier, False)
         dollas += odds_win
+        risk += stake * multiplier
     for l in [x for x in losses if x in numbers]:
         odds_loss = stake * multiplier
         dollas -= odds_loss
-
-    return dollas
+        risk += odds_loss
+     
+    return (risk, dollas)
 
 def odds(r, stake, multiplier, rightway):
     if rightway: inv = 1
@@ -59,25 +62,80 @@ def odds(r, stake, multiplier, rightway):
         factor = (6./5) ** inv
     else:
         raise Exception("no odds for {}".format(r))
+        
     return int(stake * multiplier * factor)
 
+def main():
+    parser = argparse.ArgumentParser(description = 'Craps simulator')
+    parser.add_argument('bankroll', type=int, help='starting bankroll')
+    parser.add_argument('N', type=int, default=10, help='number of points to simulate')
+    parser.add_argument('--trials', type=int, default=1, help='number of trials (ie casino visits)')
+    parser.add_argument('-c', '--csv', action='store_true', help='output in csv format')
+    parser.add_argument('--silent' , action='store_true', default=False, help='silent output')
+    parser.add_argument('--stats' , action='store_true', default=False, help='calculate statistics for trials')
+    
+    args = parser.parse_args()
+    
+    csv = args.csv
+    N = args.N
+    trials = args.trials
+    silent = args.silent
+    stats = args.stats
+    initial_bankroll = args.bankroll
+    
+    # store results in arrays for statistics
+    results = []
+    risked = []
+    
+    while trials:
+        trials -= 1
+        trial_risk = 0
+        
+        # reset trial variables
+        bankroll = initial_bankroll
+        N = args.N
+        
+        while N :
+            N -= 1
+            a = play()
+            (risk, reward) = dontpass(a)
+            
+            trial_risk += risk
+            bankroll += reward
+            
+            if not csv and not silent:
+                print "-" * 40
+                print "{} rolls: {}".format(len(a), a)
+                print "${}".format(reward)
+                print "bankroll: ${}".format(bankroll)
+
+        if not csv and not silent:
+            print "-" * 40
+            
+        if csv and not silent:
+            print bankroll
+        
+        results.append(bankroll)
+        risked.append(trial_risk)
+            
+    if stats:
+        bankroll_array = numpy.array(results)
+        risked_array = numpy.array(risked)
+        
+        avg_bankroll_result = numpy.mean(bankroll_array)
+        bankroll_stddev = numpy.std(bankroll_array)
+        print "mean   = {:.03f}".format(avg_bankroll_result)
+        print "stddev = {:.03f}".format(bankroll_stddev)
+        print "min = {}".format(numpy.min(bankroll_array))
+        print "max = {}".format(numpy.max(bankroll_array))
+        
+        avg_risked = numpy.mean(risked_array)
+        total_risked = numpy.sum(risked_array)
+        
+        print "average risked = {}".format(avg_risked)
+        print "total risked = {}".format(total_risked)
+        print "house = {:.03f}".format((avg_bankroll_result - initial_bankroll) / avg_risked)
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "{} <bankroll> <plays>".format(sys.argv[0])
-        sys.exit(2)
-
-    bank = int(sys.argv[1])
-    plays = int(sys.argv[2])
-
-    while plays:
-        print "-" * 40
-        plays -= 1
-        a = play()
-        print "{} rolls: {}".format(len(a), a)
-        money = dontpass(a)
-        print "${}".format(money)
-        bank += money
-        print "bankroll: ${}".format(bank)
-
-    print "-" * 40
+    main()
 
