@@ -8,8 +8,10 @@ Currently only don't pass is implemented, so all sims will use a don't pass stra
 Sample runs:
 
 1. Run 1 trial showing details of the roll and win/loss figure for each point.
+
 *$200 starting bankroll
 *playing until 4 points have won
+
 <pre>
     $ pycraps.py 200 4
     ----------------------------------------
@@ -32,8 +34,10 @@ Sample runs:
 </pre>
 
 2. Run 100,000 trials with each trial having:
+
 *$500 starting bankroll
 *playing until 10 points have won
+
 <pre>
     $ pycraps.py 500 10 --trials 100000 --stats --silent
     mean   = 491.013
