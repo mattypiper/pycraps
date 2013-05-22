@@ -56,8 +56,7 @@ bankroll: $1035
  * $1000 starting bankroll
  * playing pass line until 10 points have won
 <pre>
-C:\Users\Matt\Documents\git\pycraps>pycraps.py 1000 10 --trials 100000 --stats -
--silent
+$ pycraps.py 1000 10 --trials 100000 --stats --silent
 mean   = 993.265
 stddev = 402.384
 min = -314
@@ -68,7 +67,7 @@ house = -0.374%
 </pre>
 
 1. Run 100,000 trials with each trial having:
- * $500 starting bankroll
+ * $1000 starting bankroll
  * playing don't pass line until 10 points have won (lost from shooter's point of view)
 <pre>
 $ pycraps.py 1000 10 --trials 100000 --stats --silent --dontpass

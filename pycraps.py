@@ -139,7 +139,7 @@ def main():
         bankroll = initial_bankroll
         N = args.N
         
-        while N :
+        while N:
             N -= 1
             a = play()
             
