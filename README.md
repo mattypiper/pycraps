@@ -3,9 +3,9 @@ pycraps
 
 Simple craps simulator implemented in python. Only care about pass and don't pass line and associated odds.
 
-Defaults to pass line. Specify --dont to simulate a don't pass strategy.
+Defaults to pass line. Specify --dontpass to simulate a don't pass strategy.
 
-<pre>usage: pycraps.py [-h] [--dontpass] [--trials TRIALS] [-c] [--silent] --stats] bankroll N</pre>
+<pre>usage: pycraps.py [-h] [--dontpass] [--trials TRIALS] [-c] [--silent] [--stats] bankroll N</pre>
 
 Sample runs:
 
