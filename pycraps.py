@@ -18,11 +18,54 @@ def play():
 
 numbers = [4,5,6,8,9,10]
 
+# multiplier here is flat odds bet, meaning non-flat payout, eg for multiplier of 2:
+# if roll is 4, stake is 10, odds is 20, payout is 40
+# if roll is 4, stake is 10, odds is 20, payout is 30
+# if roll is 4, stake is 10, odds is 20, payout is 25
+def dopass(rolls, stake=10, multiplier=3):
+    win = [7,11]
+    loss = [2,3,12]
+    push = []
+
+    wins = [x for x in rolls if x in win]
+    losses = [x for x in rolls if x in loss]
+    pushes = [x for x in rolls if x in push]
+
+    for x in numbers:
+        c = rolls.count(x)
+        if c > 1:
+            wins.extend([x] * (c-1))
+        if c:
+            losses.extend([x])
+
+    # front line
+    dollas = stake * (len(wins) - len(losses))
+    risk = stake * len(rolls)
+
+    # odds line
+    for w in [x for x in wins if x in numbers]:
+        odds_win = odds(w, stake, multiplier, True)
+        dollas += odds_win
+        risk += stake * multiplier
+    for l in [x for x in losses if x in numbers]:
+        odds_loss = stake * multiplier
+        dollas -= odds_loss
+        risk += odds_loss
+     
+    return (risk, dollas)
+
+# simple interpretation of multiplier here gives a flat lay bet
+# meaning the payout schedule is not flat, eg for multiplier of 3:
+#  if roll is 4, stake is 10, lay is 30, payout is 15
+#  if roll is 5, stake is 10, lay is 30, payout is 20
+#  if roll is 6, stake is 10, lay is 30, payout is 25
+# notice this is slightly different than how to treat a multiplier for pass
+# but the code is simpler and is easy to adjust from the player's pov anyway.
 def dontpass(rolls, stake=10, multiplier=3):
     win = [2,3]
     loss = [7,11]
     push = [12]
-    
+
     wins = [x for x in rolls if x in win]
     losses = [x for x in rolls if x in loss]
     pushes = [x for x in rolls if x in push]
@@ -69,6 +112,7 @@ def main():
     parser = argparse.ArgumentParser(description = 'Craps simulator')
     parser.add_argument('bankroll', type=int, help='starting bankroll')
     parser.add_argument('N', type=int, default=10, help='number of points to simulate')
+    parser.add_argument('--dontpass', action='store_true', default=False, help="Play the don't pass side (program defaults to pass)")
     parser.add_argument('--trials', type=int, default=1, help='number of trials (ie casino visits)')
     parser.add_argument('-c', '--csv', action='store_true', help='output in csv format')
     parser.add_argument('--silent' , action='store_true', default=False, help='silent output')
@@ -98,7 +142,11 @@ def main():
         while N :
             N -= 1
             a = play()
-            (risk, reward) = dontpass(a)
+            
+            if args.dontpass:
+                (risk, reward) = dontpass(a)
+            else:
+                (risk, reward) = dopass(a)
             
             trial_risk += risk
             bankroll += reward
@@ -106,7 +154,8 @@ def main():
             if not csv and not silent:
                 print "-" * 40
                 print "{} rolls: {}".format(len(a), a)
-                print "${}".format(reward)
+                print "outcome: ${}".format(reward)
+                print "risked: ${}".format(risk)
                 print "bankroll: ${}".format(bankroll)
 
         if not csv and not silent:
@@ -134,7 +183,7 @@ def main():
         
         print "average risked = {}".format(avg_risked)
         print "total risked = {}".format(total_risked)
-        print "house = {:.03f}".format((avg_bankroll_result - initial_bankroll) / avg_risked)
+        print "house = {:.03f}%".format((avg_bankroll_result - initial_bankroll) / avg_risked * 100)
 
 if __name__ == "__main__":
     main()
